@@ -37,7 +37,6 @@ while(any(df$check == 0)){
   # assign parent colors (unchecked)
   if (length(new_colors) > 0) {
     df = rbind(df,data.frame(color=new_colors, check=0))
-    
   }
   df[active_row, 'check'] = 1
 }
@@ -51,14 +50,12 @@ df = data.frame(color='shiny_gold', check=0, bags=1)
 while(any(df$check == 0)){
   active_row = which(df$check==0)[1]
   active_color = df[active_row, 'color']
-  # bags present in current row
   active_bags = df[active_row, 'bags']
   # check children bags
   new_colors =   rules[[active_color]]
   if (length(new_colors) > 0) {
     # if any children bags assign (including number of bags)
     df = rbind(df,data.frame(color=names(new_colors), check=0, bags=unlist(new_colors) * active_bags))
-    
   }
   df[active_row, 'check'] = 1
 }
