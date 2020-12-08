@@ -96,6 +96,7 @@ computer <- function(operations_l, start_index=1, start_value=0){
   indices = start_index
   state = list(ind=indices[1], val=start_value)
   while(TRUE){
+    # Select active operation and provide active argument and the current state
     state = switch(operations_l[[state$ind]]$opp, 
                    'acc'=acc, 
                    'jmp'=jmp, 
