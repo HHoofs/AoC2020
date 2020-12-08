@@ -1,14 +1,24 @@
-# sum_list <- function(list1, list2){
-#   Map("+", list1[intersect(names(list1),names(list2))], list1[intersect(names(x),names(y))])
-# }
-
-
-switch_opp <- function(operations, index, scheme = list(jmp='nop', nop='jmp', acc='acc')){
-  operations[[index]]$opp = scheme[[operations[[index]]$opp]]
+#' @title 
+#' switch_opp (switch operations)
+#' 
+#' @description 
+#' changes operation of specified index, using a provided scheme (mapping)
+#'  
+#' @param operation [list]. The list of operations for which an operation is altered
+#' @param index [integer]. The index of the operation to be altered
+#' @param scheme [vector(character)]. mapping of operations to new operation
+#' 
+#' @return list with same length as operation with the operation at the provided index altered
+#'    
+switch_opp <- function(operations, index, scheme = c('jmp'='nop', 'nop'='jmp', 'acc'='acc')){
+  # alter specified operation
+  operations[[index]]$opp = scheme[operations[[index]]$opp]
+  # return operations
   return(operations)
 }
 
 
+#' @title 
 #' acc (accumulator)
 #'
 #' @description 
@@ -32,6 +42,7 @@ acc <- function(arg, state){
 }
 
 
+#' @title 
 #' jmp (jumps)
 #'
 #' @description 
@@ -57,6 +68,7 @@ jmp <- function(arg, state){
 }
 
 
+#' @title 
 #' nop (No OPeration)
 #'
 #' @description 
@@ -94,9 +106,24 @@ nop <- function(arg, state){
 #' @param start_value [integer]. Integer that is used as starting value
 #' 
 #' @return List with:
-#'  - last active state [List(integer, integer)]
-#'  - all indices used [vector(integer)]
-#'  - termination status [boolean]
+#'  - state [list(integer, integer)]. last active state 
+#'  - indices [vector(integer)]. all indices used 
+#'  - termination [boolean]. status of termination (true for succes)
+#'  
+#' @example 
+#' operations = list(
+#'   list(opp='nop', arg=0),
+#'   list(opp='acc', arg=1),
+#'   list(opp='jmp', arg=4),
+#'   list(opp='acc', arg=3),
+#'   list(opp='jmp', arg=-3),
+#'   list(opp='acc', arg=-99),
+#'   list(opp='acc', arg=1),
+#'   list(opp='jmp', arg=-4),
+#'   list(opp='acc', arg=6)
+#'   )
+#'
+#' computer(operations)
 #'  
 computer <- function(operations_l, start_index=1, start_value=0){
   indices = start_index
@@ -109,11 +136,11 @@ computer <- function(operations_l, start_index=1, start_value=0){
                    'nop'=nop)(operations_l[[state$ind]]$arg, state)
     # Check if current index is already used (Termination unsuccesfull)
     if (state$ind %in% indices) {
-      return(list(state=state, indices=indices, ter=FALSE))
+      return(list(state=state, indices=indices, termination=FALSE))
     }
     # Check if current index is outside code (Termination succesfull)
     if (state$ind > length(operations_l)){
-      return(list(state=state, indices=indices, ter=TRUE))
+      return(list(state=state, indices=indices, termination=TRUE))
     }
     indices = c(indices, state$ind)
   }
