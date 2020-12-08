@@ -131,7 +131,7 @@ print(computer(operations)$state$val)
 
 #### Part 2 --------------------
 for(i in 1:length(operations)) {
-  # Copy operations
+  # Switch operation
   operations_tmp = switch_opp(operations, i)
 
   ### Parse computer
