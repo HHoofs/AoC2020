@@ -3,6 +3,12 @@
 # }
 
 
+switch_opp <- function(operations, index, scheme = list(jmp='nop', nop='jmp', acc='acc')){
+  operations[[index]]$opp = scheme[[operations[[index]]$opp]]
+  return(operations)
+}
+
+
 #' acc (accumulator)
 #'
 #' @description 
@@ -126,22 +132,8 @@ print(computer(operations)$state$val)
 #### Part 2 --------------------
 for(i in 1:length(operations)) {
   # Copy operations
-  operations_tmp = operations
-  # Check active operation
-  opp_ac = operations_tmp[[i]]$opp
-  # If: 
-  # - `jmp` -> `nop`
-  if(opp_ac == 'jmp'){
-    operations_tmp[[i]]$opp = 'nop'
-  }
-  # - `nop` -> `jmp`
-  else if(opp_ac == 'nop'){
-    operations_tmp[[i]]$opp = 'jmp'
-  }
-  # - `acc` -> `acc` (unchanged)
-  else {
-    next()
-  }
+  operations_tmp = switch_opp(operations, i)
+
   ### Parse computer
   result = computer(operations_tmp)
   # If succesfully terminated print value
