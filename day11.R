@@ -10,15 +10,15 @@ grid_new = grid
 while(TRUE){
   for(i in 2:(nrow(grid) - 1)) {
     for(j in 2:(ncol(grid)-1)) {
-      if(grid[i,j] == "#" & sum(grid[(i-1):(i+1),(j-1):(j+1)] == "#") > 4){
+      if(grid[i,j] == "#" & sum(grid[(i-1):(i+1),(j-1):(j+1)] == "#") > 4) {
         grid_new[i,j] = "L" 
       }
-      if(grid[i,j] == "L" & sum(grid[(i-1):(i+1),(j-1):(j+1)] == "#") == 0){
+      if(grid[i,j] == "L" & sum(grid[(i-1):(i+1),(j-1):(j+1)] == "#") == 0) {
         grid_new[i,j] = "#" 
       }      
     }
   }
-  if(sum(grid=="#") == sum(grid_new=="#")){
+  if(sum(grid=="#") == sum(grid_new=="#")) {
     cat(paste('Solution to part 1 is:', 
               sum(grid_new == "#"), 
               sep='\n'))
@@ -159,16 +159,18 @@ grid_new = grid
 while(TRUE){
   for(i in 2:(nrow(grid) - 1)) {
     for(j in 2:(ncol(grid)-1)) {
+      # Visible seats
       vis_seats = walk_all(grid, i, j)
-      if(grid[i,j] == "#" & sum(vis_seats == '#') > 4){
+      
+      if(grid[i,j] == "#" & sum(vis_seats == '#') > 4) {
         grid_new[i,j] = "L" 
       }
-      if(grid[i,j] == "L" & sum(vis_seats == '#') == 0){
+      if(grid[i,j] == "L" & sum(vis_seats == '#') == 0) {
         grid_new[i,j] = "#" 
       }      
     }
   }
-  if(sum(grid=="#") == sum(grid_new=="#")){
+  if(sum(grid=="#") == sum(grid_new=="#")) {
     cat(paste('Solution to part 2 is:', 
               sum(grid_new == "#"), 
               sep='\n'))
