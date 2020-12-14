@@ -1,3 +1,4 @@
+### Functions ----------------------------
 numeric2binary <- function(numeric_value){
   if(numeric_value == 0){
     return(0)
@@ -11,6 +12,7 @@ numeric2binary <- function(numeric_value){
   return(res)
 }
 
+
 binary2numeric <- function(binary_value){
   res = 0
   pow = 0
@@ -23,12 +25,14 @@ binary2numeric <- function(binary_value){
   return(res)
 }
 
+
 mask2binary <- function(mask){
   mask_split = suppressWarnings(as.numeric(strsplit(mask, "")[[1]]))
   return(mask_split) 
 }
 
-mask_binary <- function(mask_bin, numeric_bin){
+
+mask_binary_v1 <- function(mask_bin, numeric_bin){
   size = max(length(mask_bin), length(numeric_bin))
   result_matrix = matrix(0, ncol = size, nrow = 2)
   result_matrix[1, (size-length(mask_bin) + 1):size] = mask_bin
@@ -38,6 +42,7 @@ mask_binary <- function(mask_bin, numeric_bin){
   result[is.na(mask_bin)] = result_matrix[2, is.na(result_matrix[1,])]
   return(result)
 }
+
 
 mask_binary_v2 <- function(mask_bin, numeric_bin){
   size = max(length(mask_bin), length(numeric_bin))
@@ -71,9 +76,7 @@ mask_binary_v2 <- function(mask_bin, numeric_bin){
   return(num_results)
 }
 
-
-
-
+### Input -----------------------------
 inp  = readLines("inp/day14_inp.txt", )
 
 ### Star 1 ----
@@ -86,7 +89,7 @@ for(instruction in inp){
   } else {
     slot = as.numeric(regmatches(parsed_instruction[[1]], gregexpr("[[:digit:]]+", parsed_instruction[1]))[[1]])
     numeric_value = as.numeric(parsed_instruction[2])
-    final_numeric_value = binary2numeric(mask_binary(mask2binary(mask), numeric2binary(numeric_value)))
+    final_numeric_value = binary2numeric(mask_binary_v1(mask2binary(mask), numeric2binary(numeric_value)))
     memory[as.character(slot)] = final_numeric_value
   }
 }
@@ -126,6 +129,7 @@ for(instruction in inp){
   i = i + 1
 }
 
+cat('\n')
 cat(paste('Solution to part 2 is:', 
           sum(unlist(memory)), 
           sep='\n'))
