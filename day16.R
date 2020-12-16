@@ -43,7 +43,7 @@ for(nearby_ticket in nearby_tickets){
 ticket_option = lapply(ticket_option, function(x) apply(x, 1, function(y) which(y)))
 
 valid_options = list()
-for(i in 1:length(all_rules)){
+for(i in seq(length(all_rules))){
   valid_options[[length(valid_options) + 1]] = Reduce(intersect,lapply(ticket_option, function(x) x[[i]]))
 }
 
@@ -68,6 +68,3 @@ while(TRUE){
 cat(paste('Solution to part 2 is:', 
           prod(ticket[which(unlist(valid_option) %in% c(1,2,3,4,5,6))]), 
           sep='\n'))
-
-
-
