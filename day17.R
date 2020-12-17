@@ -1,8 +1,10 @@
 ### Input ---------
 inp = readLines('inp/day17_inp.txt',)
+tqdm = txtProgressBar(min = 1, max = cycles, initial = 0, style=3) 
 
 cycles = 6
 dim_size = length(inp) + cycles + 8
+grid_center = dim_size %/% 2
 
 ### Star 1 ----------
 store = array(0, rep(dim_size, 3))
@@ -14,9 +16,9 @@ for(inp_line in seq(length(inp))) {
   for(cube in seq(length(cubes))) {
     if(cubes[cube] == '#'){
       # place in the middle
-      store[inp_line + cycles, 
-            cube + cycles,
-            11] = 1
+      store[grid_center + (length(inp) - inp_line), 
+            grid_center + (length(cubes) - cube),
+            grid_center] = 1
     }
   }
 }
@@ -28,6 +30,7 @@ new_store = store
 
 # Iterate over each cell for a given number of cycles
 for(cycle_i in seq(cycles)) {
+  setTxtProgressBar(tqdm, cycle_i)
   for(x in seq(2,dim_size-1)) {
     for(y in seq(2,dim_size-1)) {
       for(z in seq(2,dim_size-1)) {
@@ -55,6 +58,7 @@ for(cycle_i in seq(cycles)) {
   store = new_store
 }
 
+cat('\n')
 cat(paste('Solution to part 1 is:', 
           sum(store), 
           sep='\n'))
@@ -71,10 +75,10 @@ for(inp_line in seq(length(inp))) {
   for(cube in seq(length(cubes))) {
     if(cubes[cube] == '#'){
       # place in the middle
-      store[inp_line + cycles, 
-            cube + cycles,
-            11, 
-            11] = 1
+      store[grid_center + (length(inp) - inp_line), 
+            grid_center + (length(cubes) - cube),
+            grid_center,
+            grid_center] = 1
     }
   }
 }
@@ -82,6 +86,7 @@ for(inp_line in seq(length(inp))) {
 new_store = store
 
 for(cycle_i in seq(cycles)) {
+  setTxtProgressBar(tqdm, cycle_i)
   for(x in seq(2,dim_size-1)) {
     for(y in seq(2,dim_size-1)) {
       for(z in seq(2,dim_size-1)) {
@@ -107,6 +112,7 @@ for(cycle_i in seq(cycles)) {
   store = new_store
 }
 
+cat('\n')
 cat(paste('Solution to part 2 is:', 
           sum(store), 
           sep='\n'))
