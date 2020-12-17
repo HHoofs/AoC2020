@@ -16,8 +16,8 @@ for(inp_line in seq(length(inp))) {
   for(cube in seq(length(cubes))) {
     if(cubes[cube] == '#'){
       # place in the middle
-      store[grid_center + (length(inp) - inp_line), 
-            grid_center + (length(cubes) - cube),
+      store[grid_center + (inp_line -  (length(inp)%/%2)), 
+            grid_center + (cube -  (length(cubes)%/%2)),
             grid_center] = 1
     }
   }
@@ -75,13 +75,15 @@ for(inp_line in seq(length(inp))) {
   for(cube in seq(length(cubes))) {
     if(cubes[cube] == '#'){
       # place in the middle
-      store[grid_center + (length(inp) - inp_line), 
-            grid_center + (length(cubes) - cube),
+      store[grid_center + (inp_line -  (length(inp)%/%2)), 
+            grid_center + (cube -  (length(cubes)%/%2)),
             grid_center,
             grid_center] = 1
     }
   }
 }
+
+print(store[,,grid_center,grid_center])
 
 new_store = store
 
