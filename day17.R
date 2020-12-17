@@ -66,7 +66,6 @@ cat('\n====\n')
 
 
 ### Star 2 ----------------
-
 store = array(0, rep(dim_size,4))
 
 for(inp_line in seq(length(inp))) {
@@ -82,8 +81,6 @@ for(inp_line in seq(length(inp))) {
     }
   }
 }
-
-print(store[,,grid_center,grid_center])
 
 new_store = store
 
