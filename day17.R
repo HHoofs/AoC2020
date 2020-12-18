@@ -1,8 +1,9 @@
 ### Input ---------
 inp = readLines('inp/day17_inp.txt',)
+cycles = 6
 tqdm = txtProgressBar(min = 1, max = cycles, initial = 0, style=3) 
 
-cycles = 6
+
 dim_size = length(inp) + cycles + 8
 grid_center = dim_size %/% 2
 
