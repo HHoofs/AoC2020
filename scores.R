@@ -9,7 +9,7 @@ json_data <- fromJSON(paste(readLines('inp/scores.json'), collapse=""))
 str(json_data)
 
 df = data.frame(members=unlist(lapply(json_data$members, function(x) x$name)))
-for(i in 1:12){
+for(i in 1:22){
   df[,paste(i, 1, sep="-")] = as.POSIXct(as.numeric(1), origin="1970-01-01")
   df[,paste(i, 2, sep="-")] = as.POSIXct(as.numeric(1), origin="1970-01-01")
 }
@@ -46,7 +46,7 @@ filter_day <- function(x, day){
 days_scores = list()
 dayz = 1
 
-total_dayz = 11
+total_dayz = 21
 
 time_window = seq(from = as.POSIXct('2020-12-2 00:00:00',tz='CET'), length.out = total_dayz, by = "days")
 
