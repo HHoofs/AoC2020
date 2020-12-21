@@ -59,7 +59,6 @@ all_answers = c()
 for(exc in inp){
   while(str_detect(exc, '\\(')){
     exc = str_replace_all(exc, "\\([0123456789 \\+\\*]*\\)", function(reg_match) order_rule2(reg_match))
-    exc = str_replace_all(exc, '\\( +', '\\(')
     exc = str_replace_all(exc, ' +', ' ')
   }
   all_answers = c(all_answers, as.numeric(order_rule2(exc)))
