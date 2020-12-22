@@ -89,6 +89,6 @@ crabs = function(p1_cards, p2_cards){
 
 winner = crabs(player_1, player_2)
 
-cat(paste('Solution to part 1 is:', 
+cat(paste('Solution to part 2 is:', 
           sum(winner$cards * seq(from=length(winner$cards), to=1)), 
           sep='\n'))
