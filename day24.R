@@ -65,7 +65,11 @@ for (command in commands) {
 
 sum(grid %% 2 == 1, na.rm = TRUE)
 
+
 grid = grid %% 2
+
+az = which(grid==1, arr.ind=TRUE)
+
 
 for ( i in seq(100)){
   print(i)

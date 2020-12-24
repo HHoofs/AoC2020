@@ -47,3 +47,21 @@ print(final[2])
 print(final[3])
 
 print(res$b)
+
+
+card_l = list()
+
+for(card in cards){
+  card_l[[length(card_l) + 1]] = card
+}
+
+
+for(round in seq(rounds)){
+  cards
+}
+
+
+
+
+
+
