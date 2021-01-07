@@ -1,215 +1,217 @@
-a = c(1778,
-      1845,
-      1813,
-      1889,
-      1939,
-      1635,
-      1443,
-      796,
-      1799,
-      938,
-      1488,
-      1922,
-      1909,
-      1258,
-      1659,
-      1959,
-      1557,
-      1085,
-      1379,
-      1174,
-      1782,
-      1482,
-      1702,
-      1180,
-      1992,
-      1815,
-      1802,
-      215,
-      1649,
-      782,
-      1847,
-      1673,
-      1823,
-      1836,
-      1447,
-      1603,
-      1767,
-      1891,
-      1964,
-      1881,
-      1637,
-      1229,
-      1994,
-      1901,
-      1583,
-      1918,
-      1415,
-      1666,
-      1155,
-      1446,
-      1315,
-      1345,
-      1948,
-      1427,
-      1242,
-      1088,
-      807,
-      1747,
-      1514,
-      1351,
-      1791,
-      1612,
-      1550,
-      1926,
-      1455,
-      85,
-      1594,
-      1965,
-      1884,
-      1677,
-      1960,
-      1631,
-      1585,
-      1472,
-      1263,
-      1566,
-      1998,
-      1698,
-      1968,
-      1927,
-      1378,
-      1346,
-      1710,
-      1921,
-      1827,
-      1869,
-      1187,
-      1985,
-      1323,
-      1225,
-      1474,
-      1179,
-      1580,
-      1098,
-      1737,
-      1483,
-      1665,
-      1445,
-      1979,
-      1754,
-      1854,
-      1897,
-      1405,
-      1912,
-      1614,
-      1390,
-      1773,
-      1493,
-      1333,
-      1758,
-      1867,
-      1586,
-      1347,
-      1723,
-      1285,
-      394,
-      1743,
-      1252,
-      320,
-      1547,
-      1804,
-      1899,
-      1526,
-      1739,
-      1533,
-      1938,
-      1081,
-      1465,
-      1920,
-      1265,
-      1470,
-      1792,
-      1118,
-      1842,
-      1204,
-      1760,
-      1663,
-      893,
-      1853,
-      1244,
-      1256,
-      1428,
-      1334,
-      1967,
-      1249,
-      1752,
-      1124,
-      1725,
-      1949,
-      1340,
-      1205,
-      1584,
-      548,
-      1947,
-      2002,
-      1993,
-      1931,
-      1236,
-      1154,
-      1572,
-      1650,
-      1678,
-      1944,
-      1868,
-      1129 ,
-      1911,
-      1106,
-      1900,
-      1240,
-      1955,
-      1219,
-      1893,
-      1459,
-      1556,
-      1173,
-      1924,
-      1568,
-      1950,
-      1303,
-      1886,
-      1365,
-      1402,
-      1711,
-      1706,
-      1671,
-      1866,
-      1403,
-      1816,
-      1717,
-      1674,
-      1487,
-      1840,
-      1951,
-      1255,
-      1786,
-      1111,
-      1280,
-      1625,
-      1478,
-      1453)
+from datasets import load_dataset
+import tensorflow as tf
+import numpy as np
+import matplotlib.pyplot as plt
+import tensorflow_datasets as tfds
+import transformers
+import datasets
+from transformers import AutoTokenizer, TFT5ForConditionalGeneration
+import datetime
+import os
 
 
-for (i in a) {
-  for(j in a) {
-    for(k in a){
-      if(i+j+k==2020){
-        print(i)
-        print(j)
-        print(k)
-        print(i*j*k)
-      }
-    }
-  }
-  
-}
+
+tf_version = tf.__version__
+print("Tensorflow: ", tf_version)
+print("Transformers: ", transformers.__version__)
+print("Datasets: ", datasets.__version__)
+
+tf_version_split = tf_version.split('.')
+assert int(tf_version_split[0])==2 and int(tf_version_split[-2])>=3, f"Tensorflow version should be '2.3+,x', given {tf_version}"
+
+data_dir = "./data"
+log_dir = f"{data_dir}/experiments/t5/logs"
+save_path = f"{data_dir}/experiments/t5/models"
+cache_path_train = f"{data_dir}/cache/t5.train"
+cache_path_test = f"{data_dir}/cache/t5.test"
+
+
+class SnapthatT5(TFT5ForConditionalGeneration):
+    def __init__(self, *args, log_dir=None, cache_dir=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.loss_tracker = tf.keras.metrics.Mean(name='loss')
+
+    @tf.function
+    def train_step(self, data):
+        x = data
+        y = x["labels"]
+        y = tf.reshape(y, [-1, 1])
+        with tf.GradientTape() as tape:
+            outputs = self(x, training=True)
+            loss = outputs[0]
+            logits = outputs[1]
+            loss = tf.reduce_mean(loss)
+
+            grads = tape.gradient(loss, self.trainable_variables)
+
+        self.optimizer.apply_gradients(zip(grads, self.trainable_variables))
+        lr = self.optimizer._decayed_lr(tf.float32)
+
+        self.loss_tracker.update_state(loss)
+        self.compiled_metrics.update_state(y, logits)
+        metrics = {m.name: m.result() for m in self.metrics}
+        metrics.update({'lr': lr})
+
+        return metrics
+
+    def test_step(self, data):
+        x = data
+        y = x["labels"]
+        y = tf.reshape(y, [-1, 1])
+        output = self(x, training=False)
+        loss = output[0]
+        loss = tf.reduce_mean(loss)
+        logits = output[1]
+
+        self.loss_tracker.update_state(loss)
+        self.compiled_metrics.update_state(y, logits)
+        return {m.name: m.result() for m in self.metrics}
+
+
+
+tokenizer = AutoTokenizer.from_pretrained("t5-base")
+
+
+train_dataset = load_dataset('squad', split='train')
+valid_dataset = load_dataset('squad', split='validation')
+
+train_dataset.features
+
+
+
+warmup_steps = 1e4
+batch_size = 4
+encoder_max_len = 250
+decoder_max_len = 54
+buffer_size = 1000
+ntrain = len(train_dataset)
+nvalid = len(valid_dataset)
+steps = int(np.ceil(ntrain/batch_size))
+valid_steps = int(np.ceil(nvalid/batch_size))
+print("Total Steps: ", steps)
+print("Total Validation Steps: ", valid_steps)
+
+
+def encode(example,
+           encoder_max_len=encoder_max_len, decoder_max_len=decoder_max_len):
+    context = example['context']
+    question = example['question']
+    answer = example['answers']['text']
+
+    question_plus = f"answer_me: {str(question)}"
+    question_plus += f" context: {str(context)} </s>"
+
+    answer_plus = ', '.join([i for i in list(answer)])
+    answer_plus = f"{answer_plus} </s>"
+
+    encoder_inputs = tokenizer(question_plus, truncation=True,
+                               return_tensors='tf', max_length=encoder_max_len,
+                               pad_to_max_length=True)
+
+    decoder_inputs = tokenizer(answer_plus, truncation=True,
+                               return_tensors='tf', max_length=decoder_max_len,
+                               pad_to_max_length=True)
+
+    input_ids = encoder_inputs['input_ids'][0]
+    input_attention = encoder_inputs['attention_mask'][0]
+    target_ids = decoder_inputs['input_ids'][0]
+    target_attention = decoder_inputs['attention_mask'][0]
+
+    outputs = {'input_ids': input_ids, 'attention_mask': input_attention,
+               'labels': target_ids, 'decoder_attention_mask': target_attention}
+    return outputs
+
+
+
+train_ds=  train_dataset.map(encode)
+valid_ds=  valid_dataset.map(encode)
+
+
+
+def to_tf_dataset(dataset):
+  columns = ['input_ids', 'attention_mask', 'labels', 'decoder_attention_mask']
+  dataset.set_format(type='tensorflow', columns=columns)
+  return_types = {'input_ids':tf.int32, 'attention_mask':tf.int32,
+                'labels':tf.int32, 'decoder_attention_mask':tf.int32,  }
+  return_shapes = {'input_ids': tf.TensorShape([None]), 'attention_mask': tf.TensorShape([None]),
+                  'labels': tf.TensorShape([None]), 'decoder_attention_mask':tf.TensorShape([None])}
+  ds = tf.data.Dataset.from_generator(lambda : dataset, return_types, return_shapes)
+  return ds
+
+
+tf_train_ds = to_tf_dataset(train_ds)
+tf_valid_ds = to_tf_dataset(valid_ds)
+
+
+def create_dataset(dataset, cache_path=None, batch_size=4,
+                   buffer_size=1000, shuffling=True):
+    if cache_path is not None:
+        dataset = dataset.cache(cache_path)
+    if shuffling:
+        dataset = dataset.shuffle(buffer_size)
+    dataset = dataset.batch(batch_size)
+    dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
+    return dataset
+
+
+tf_train_ds= create_dataset(tf_train_ds, batch_size=batch_size,
+                         shuffling=True, cache_path = None)
+tf_valid_ds = create_dataset(tf_valid_ds, batch_size=batch_size,
+                         shuffling=False, cache_path = None)
+
+
+class CustomSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
+    def __init__(self, warmup_steps=1e4):
+        super().__init__()
+
+        self.warmup_steps = tf.cast(warmup_steps, tf.float32)
+
+    def __call__(self, step):
+        step = tf.cast(step, tf.float32)
+        m = tf.maximum(self.warmup_steps, step)
+        m = tf.cast(m, tf.float32)
+        lr = tf.math.rsqrt(m)
+
+        return lr
+
+plt.style.use('ggplot')
+schedule = CustomSchedule()
+plt.plot(schedule(tf.range(25000, dtype=tf.float32)))
+plt.xlabel("Steps")
+plt.ylabel("Learning rate")
+
+start_profile_batch = steps+10
+stop_profile_batch = start_profile_batch + 100
+profile_range = f"{start_profile_batch},{stop_profile_batch}"
+#
+# log_path = log_dir + "/" + datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+# tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_path, histogram_freq=1,
+#                                                      update_freq=20,profile_batch=profile_range)
+#
+# checkpoint_filepath = save_path + "/" + "T5-{epoch:04d}-{val_loss:.4f}.ckpt"
+# model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
+#     filepath=checkpoint_filepath,
+#     save_weights_only=False,
+#     monitor='val_loss',
+#     mode='min',
+#     save_best_only=True)
+#
+# callbacks = [tensorboard_callback, model_checkpoint_callback]
+# metrics = [tf.keras.metrics.SparseTopKCategoricalAccuracy(name='accuracy') ]
+
+
+learning_rate = CustomSchedule()
+# learning_rate = 0.001  # Instead set a static learning rate
+optimizer = tf.keras.optimizers.Adam(learning_rate)
+
+
+
+model = SnapthatT5.from_pretrained("t5-base")
+
+
+
+model.compile(optimizer=optimizer)
+
+
+model.fit(tf_train_ds, epochs=5, steps_per_epoch=steps,
+          validation_data=tf_valid_ds, validation_steps=valid_steps, initial_epoch=0)
